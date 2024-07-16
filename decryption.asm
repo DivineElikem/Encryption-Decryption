@@ -1,28 +1,37 @@
 section .data
     key       db 0xAA                ; Simple XOR key
-    ciphertext db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ; Buffer to be replaced with ciphertext
-    ciphertext_len equ $ - ciphertext ; Calculate the length of the ciphertext
+    buffer_len equ 128               ; Maximum length of input buffer
 
 section .bss
-    plaintext resb ciphertext_len    ; Buffer to store the decrypted data
+    ciphertext resb buffer_len       ; Buffer to store the ciphertext
+    plaintext resb buffer_len        ; Buffer to store the decrypted data
 
 section .text
     global _start
 
 _start:
-    ; Load the address of the ciphertext and plaintext into registers
-    mov rsi, ciphertext
-    mov rdi, plaintext
+    ; Read the ciphertext from stdin
+    mov rax, 0         ; sys_read system call number
+    mov rdi, 0         ; file descriptor 0 (stdin)
+    mov rsi, ciphertext ; address of the ciphertext buffer
+    mov rdx, buffer_len ; number of bytes to read
+    syscall
 
-    ; Load the length of the ciphertext into rcx
-    mov rcx, ciphertext_len
+    ; Store the number of bytes read in rdx
+    mov rdx, rax
+    ; Copy the number of bytes read to rcx
+    mov rcx, rdx
 
     ; Load the XOR key into al
     mov al, [key]
 
+    ; Load the address of the ciphertext and plaintext into registers
+    mov rsi, ciphertext
+    mov rdi, plaintext
+
 decrypt:
-    ; Check if we've reached the end of the string
-    cmp byte [rsi], 0
+    ; Check if we've reached the end of the input
+    cmp rcx, 0
     je write_plaintext
 
     ; Perform XOR decryption
@@ -33,14 +42,14 @@ decrypt:
     ; Move to the next character
     inc rsi
     inc rdi
-    loop decrypt
+    dec rcx
+    jmp decrypt
 
 write_plaintext:
     ; Write the plaintext to stdout
     mov rax, 1         ; sys_write system call number
     mov rdi, 1         ; file descriptor 1 (stdout)
     mov rsi, plaintext ; address of the plaintext
-    mov rdx, ciphertext_len ; number of bytes to write
     syscall
 
     ; Exit the program

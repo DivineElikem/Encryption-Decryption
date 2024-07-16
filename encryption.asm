@@ -1,28 +1,37 @@
 section .data
-    plaintext db 'Hello, World!', 0  ; Null-terminated string to be encrypted
     key       db 0xAA                ; Simple XOR key
-    plaintext_len equ $ - plaintext  ; Calculate the length of the plaintext
+    buffer_len equ 128               ; Maximum length of input buffer
 
 section .bss
-    ciphertext resb plaintext_len    ; Buffer to store the encrypted data
+    plaintext resb buffer_len        ; Buffer to store the plaintext
+    ciphertext resb buffer_len       ; Buffer to store the encrypted data
 
 section .text
     global _start
 
 _start:
-    ; Load the address of the plaintext and ciphertext into registers
-    mov rsi, plaintext
-    mov rdi, ciphertext
+    ; Read the plaintext from stdin
+    mov rax, 0         ; sys_read system call number
+    mov rdi, 0         ; file descriptor 0 (stdin)
+    mov rsi, plaintext ; address of the plaintext buffer
+    mov rdx, buffer_len ; number of bytes to read
+    syscall
 
-    ; Load the length of the plaintext into rcx
-    mov rcx, plaintext_len
+    ; Store the number of bytes read in rdx
+    mov rdx, rax
+    ; Copy the number of bytes read to rcx
+    mov rcx, rdx
 
     ; Load the XOR key into al
     mov al, [key]
 
+    ; Load the address of the plaintext and ciphertext into registers
+    mov rsi, plaintext
+    mov rdi, ciphertext
+
 encrypt:
-    ; Check if we've reached the end of the string
-    cmp byte [rsi], 0
+    ; Check if we've reached the end of the input
+    cmp rcx, 0
     je write_ciphertext
 
     ; Perform XOR encryption
@@ -33,18 +42,17 @@ encrypt:
     ; Move to the next character
     inc rsi
     inc rdi
-    loop encrypt
+    dec rcx
+    jmp encrypt
 
 write_ciphertext:
     ; Write the ciphertext to stdout
     mov rax, 1         ; sys_write system call number
     mov rdi, 1         ; file descriptor 1 (stdout)
     mov rsi, ciphertext ; address of the ciphertext
-    mov rdx, plaintext_len ; number of bytes to write
     syscall
 
     ; Exit the program
     mov rax, 60         ; sys_exit system call number
     xor rdi, rdi        ; exit code 0
     syscall
-`

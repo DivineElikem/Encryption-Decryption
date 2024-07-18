@@ -9,7 +9,7 @@ An encryption/decryption algorithm with Assembly language
 This program takes some text you type in, scrambles it (encrypts it), and then shows you the scrambled text. Here's how it works:
 
 1. Section: .data
-   - Key: This is like a secret code used to scramble and unscramble your message. In this case, it's the number 0xAA.
+   - Key: This is like a secret code used to scramble and unscramble your message. In this case, it's the number 0x11.
    - Buffer length: This is just a number that tells the computer how much space to use for the text (128 characters).
    - Messages: These are the texts shown to you, like "Enter the text to be encrypted" and "This is your encrypted text".
 
@@ -34,7 +34,7 @@ This program takes some text you type in, scrambles it (encrypts it), and then s
 This program takes the scrambled text you got from the first program, unscrambles it (decrypts it), and shows you the original message. Here's how it works:
 
 1. Section: .data
-   - Key: This is the same secret code used to scramble the message (0xAA).
+   - Key: This is the same secret code used to scramble the message (0x11).
    - Buffer length: This tells the computer how much space to use for the text (128 characters).
    - Messages: These are the texts shown to you, like "Enter the ciphertext to be decrypted" and "This is your decrypted text".
 
